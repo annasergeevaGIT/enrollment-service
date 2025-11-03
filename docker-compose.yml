@@ -1,0 +1,68 @@
+services:
+  enrollment-service:
+    image: "enrollment-service"
+    container_name: "enrollment-service"
+    depends_on:
+      postgres-enrollments:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_R2DBC_URL=r2dbc:postgresql://postgres-enrollments:6432/enrollment_service_db
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-enrollments:6432/enrollment_service_db
+      - EXTERNAL_COURSE_SERVICE_URL=http://course-service:8081
+
+  course-service:
+    image: "course-service"
+    container_name: "course-service"
+    depends_on:
+      postgres-courses:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-courses:6431/course_service_db
+
+  postgres-courses:
+    image: "postgres:16.1"
+    container_name: "postgres-courses"
+    ports:
+      - "6431:6431"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=course_service_db
+      - PGPORT=6431
+    volumes:
+      - db-courses:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-p", "6431", "-d", "course_service_db" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  postgres-enrollments:
+    image: "postgres:16.1"
+    container_name: "postgres-enrollments"
+    ports:
+      - "6432:6432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=enrollment_service_db
+      - PGPORT=6432
+    volumes:
+      - db-enrollments:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-p", "6432", "-d", "enrollment_service_db" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+volumes:
+  db-enrollments:
+    driver: local
+  db-courses:
+    driver: local

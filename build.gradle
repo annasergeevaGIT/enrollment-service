@@ -1,0 +1,72 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'at'
+version = '0.0.1-SNAPSHOT'
+description = 'e-learning-platform'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+	sourceCompatibility = '21'
+}
+
+jar {
+	enabled = false
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	wiremockVersion = '3.2.0'
+	springdocVersion = '2.5.0' //swagger documentation
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+//	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${springdocVersion}"
+	implementation 'org.postgresql:r2dbc-postgresql'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'org.flywaydb:flyway-core'
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'org.springframework:spring-jdbc' //for Flyway it cant work with r2dbc
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'io.projectreactor:reactor-test' //reactive streams testing
+	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.testcontainers:postgresql'
+	testImplementation 'org.testcontainers:r2dbc'
+	testImplementation 'com.squareup.okhttp3:mockwebserver' //HTTP server for mocking external API calls during tests
+	testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
+	testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+
+}
+
+bootBuildImage {
+	imageName = "${project.name}"
+	environment = ["BP_JVM_VERSION": "21.*"]
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

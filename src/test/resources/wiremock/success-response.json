@@ -1,0 +1,22 @@
+{
+  "courseInfos": [
+    {
+      "name": "One",
+      "price": 10.1,
+      "language": "English",
+      "isAvailable": true
+    },
+    {
+      "name": "Two",
+      "price": 20.2,
+      "language": "English",
+      "isAvailable": true
+    },
+    {
+      "name": "Three",
+      "price": 30.3,
+      "language": "English",
+      "isAvailable": true
+    }
+  ]
+}
