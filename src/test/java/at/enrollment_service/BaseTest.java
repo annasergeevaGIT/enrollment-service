@@ -29,11 +29,18 @@ public abstract class BaseTest {
     @Autowired
     private ConnectionFactory connectionFactory;
 
+    @Value("classpath:insert-enrollments.sql")
+    private Resource insertEnrollmentsScript;
+
+    @Value("classpath:delete-enrollments.sql")
+    private Resource deleteEnrollmentsScript;
+
     static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16.1"))
             .withReuse(true)
             .withDatabaseName("test_database")
             .withUsername("user")
-            .withPassword("password");
+            .withPassword("password")
+            .withCommand("-c wal_level=logical -c max_wal_senders=1 -c max_replication_slots=1");
 
     static {
         container.start();
@@ -46,13 +53,13 @@ public abstract class BaseTest {
     }
 
     @BeforeEach
-    void populateDb(@Value("classpath:insert-enrollments.sql") Resource script) {
-        executeScriptBlocking(script);
+    void populateDb() {
+        executeScriptBlocking(insertEnrollmentsScript);
     }
 
     @AfterEach
-    void clearDb(@Value("classpath:delete-enrollments.sql") Resource script) {
-        executeScriptBlocking(script);
+    void clearDb() {
+        executeScriptBlocking(deleteEnrollmentsScript);
     }
 
     // https://stackoverflow.com/a/73233121
