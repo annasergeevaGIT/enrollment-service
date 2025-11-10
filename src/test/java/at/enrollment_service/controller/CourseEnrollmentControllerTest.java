@@ -6,6 +6,8 @@ import at.enrollment_service.model.EnrollmentStatus;
 import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -15,9 +17,10 @@ import java.util.Comparator;
 import static at.enrollment_service.controller.CourseEnrollmentController.USER_HEADER;
 import static at.enrollment_service.testdata.TestConstants.*;
 import static at.enrollment_service.testdata.TestDataProvider.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @AutoConfigureWebTestClient(timeout = "20000") // Increase timeout for WebTestClient
+@EnableAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
 public class CourseEnrollmentControllerTest extends BaseIntegrationTest {
 
     @Autowired

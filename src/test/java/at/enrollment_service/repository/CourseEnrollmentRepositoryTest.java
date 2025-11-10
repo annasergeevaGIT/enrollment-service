@@ -3,6 +3,8 @@ package at.enrollment_service.repository;
 import at.enrollment_service.BaseTest;
 import at.enrollment_service.config.R2dbcConfig;
 import at.enrollment_service.model.CourseEnrollment;
+import at.enrollment_service.model.EnrollmentStatus;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -16,6 +18,7 @@ import reactor.test.StepVerifier;
 
 import static at.enrollment_service.testdata.TestConstants.*;
 import static at.enrollment_service.testdata.TestConstants.ENROLLMENT_TWO_DATE;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @Import({R2dbcConfig.class}) // import custom converters configuration
 @ImportAutoConfiguration({JacksonAutoConfiguration.class}) //ensure Jackson config is loaded
@@ -64,5 +67,25 @@ public class CourseEnrollmentRepositoryTest extends BaseTest {
         StepVerifier.create(enrollments)
                 .expectNextCount(0)
                 .verifyComplete();
+    }
+
+    @Test
+    void updateStatusById_updatesStatusOfExistingEnrollment() {
+        var enrollment = repository.findAll().blockFirst();
+        var enrollmentId = enrollment.getId();
+
+        repository.updateStatusById(enrollmentId, EnrollmentStatus.ACCEPTED).block();
+        var updated = repository.findById(enrollmentId).block();
+        assertThat(updated.getStatus()).isEqualTo(EnrollmentStatus.ACCEPTED);
+        AssertionsForClassTypes.assertThat(updated.getUpdatedAt()).isAfter(enrollment.getUpdatedAt());
+    }
+
+    @Test
+    void updateStatusById_doesNothingIfEnrollmentNotExists() {
+        Long enrollmentId = 1000L;
+
+        repository.updateStatusById(enrollmentId, EnrollmentStatus.ACCEPTED).block();
+        var updated = repository.findById(enrollmentId).block();
+        AssertionsForClassTypes.assertThat(updated).isNull();
     }
 }

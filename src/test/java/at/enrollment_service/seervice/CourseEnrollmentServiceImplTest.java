@@ -11,6 +11,8 @@ import at.enrollment_service.testdata.TestConstants;
 import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -24,8 +26,9 @@ import static at.enrollment_service.testdata.TestDataProvider.createEnrollmentRe
 import static at.enrollment_service.testdata.TestDataProvider.existingItems;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
+@EnableAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
 public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
 
     @Autowired
