@@ -54,6 +54,7 @@ dependencies {
 	implementation 'org.springframework.retry:spring-retry' //config server
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation "org.apache.avro:avro:${avroVersion}"
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.flywaydb:flyway-core'

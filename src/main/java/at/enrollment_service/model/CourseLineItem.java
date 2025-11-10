@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CourseLineItem {
-    private String courseItemName;
+    private String courseName;
     private BigDecimal price;
     private String language; //private Integer quantity;
 }

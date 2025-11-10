@@ -63,7 +63,7 @@ public class EnrollmentMapper {
                 .filter(info -> request.getCourseNames().contains(info.getName())) // in case of Set<String>
                 .map(info -> CourseLineItem.builder()
                     //int quantity = request.getNameToQuantity().get(info.getName()); in case of Map<String, Integer>
-                        .courseItemName(info.getName())
+                        .courseName(info.getName())
                         .price(info.getPrice())
                         .language(info.getLanguage())
                         .build())

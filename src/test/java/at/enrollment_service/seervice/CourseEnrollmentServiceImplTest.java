@@ -106,7 +106,7 @@ public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
                     courseItems.sort(Comparator.comparing(CourseLineItem::getPrice));
 
                     AssertionsForInterfaceTypes.assertThat(courseItems)
-                            .map(CourseLineItem::getCourseItemName)
+                            .map(CourseLineItem::getCourseName)
                             .containsExactly(COURSE_ONE, COURSE_TWO, COURSE_THREE);
 
                     AssertionsForInterfaceTypes.assertThat(courseItems)

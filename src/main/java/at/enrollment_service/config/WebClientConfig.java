@@ -1,6 +1,7 @@
 package at.enrollment_service.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,12 +12,19 @@ import org.springframework.web.reactive.function.client.WebClient;
 @RequiredArgsConstructor
 @Configuration
 public class WebClientConfig {
-    private final EnrollmentServiceProps enrollmentServiceProps;
+
+    private final EnrollmentServiceProps props;
+
+    @LoadBalanced
+    @Bean
+    public WebClient.Builder loadBalancedWebClientBuilder() {
+        return WebClient.builder();
+    }
 
     @Bean
-    public WebClient webClient() {
-        return WebClient.builder()
-                .baseUrl(enrollmentServiceProps.getCourseServiceUrl())
+    public WebClient webClient(WebClient.Builder loadBalancedWebClientBuilder) {
+        return loadBalancedWebClientBuilder
+                .baseUrl(props.getCourseServiceUrl())
                 .build();
     }
 }

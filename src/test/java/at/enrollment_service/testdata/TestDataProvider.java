@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static at.enrollment_service.testdata.TestConstants.*;
@@ -51,7 +50,7 @@ public class TestDataProvider {
 
     public static CourseLineItem firstExisting() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_ONE)
+                .courseName(COURSE_ONE)
                 .price(COURSE_ONE_PRICE)
                 .language(COURSE_ONE_LANGUAGE)
                 .build();
@@ -59,7 +58,7 @@ public class TestDataProvider {
 
     public static CourseLineItem secondExisting() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_TWO)
+                .courseName(COURSE_TWO)
                 .price(COURSE_TWO_PRICE)
                 .language(COURSE_TWO_LANGUAGE)
                 .build();
@@ -67,7 +66,7 @@ public class TestDataProvider {
 
     public static CourseLineItem thirdExisting() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_THREE)
+                .courseName(COURSE_THREE)
                 .price(COURSE_THREE_PRICE)
                 .language(COURSE_THREE_LANGUAGE)
                 .build();
@@ -83,7 +82,7 @@ public class TestDataProvider {
 
     public static CourseLineItem firstCreatedItem() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_ONE)
+                .courseName(COURSE_ONE)
                 .price(COURSE_CREATE_ONE_PRICE)
                 .language(COURSE_CREATE_ONE_LANGUAGE)
                 .build();
@@ -91,7 +90,7 @@ public class TestDataProvider {
 
     public static CourseLineItem secondCreatedItem() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_TWO)
+                .courseName(COURSE_TWO)
                 .price(COURSE_CREATE_TWO_PRICE)
                 .language(COURSE_CREATE_TWO_LANGUAGE)
                 .build();
@@ -99,7 +98,7 @@ public class TestDataProvider {
 
     public static CourseLineItem thirdCreatedItem() {
         return CourseLineItem.builder()
-                .courseItemName(COURSE_THREE)
+                .courseName(COURSE_THREE)
                 .price(COURSE_CREATE_THREE_PRICE)
                 .language(COURSE_CREATE_THREE_LANGUAGE)
                 .build();
