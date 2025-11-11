@@ -3,6 +3,8 @@ package at.enrollment_service;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -18,7 +20,10 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
  * The {@link WireMockExtension} automatically starts and stops the server for all tests.
  * Provides helper methods to prepare common stub responses (success, partial success, timeout, and service unavailable).
  */
+
+@ActiveProfiles("test")
 @SpringBootTest
+@Import(TestWebClientConfig.class)
 public class BaseIntegrationTest extends BaseTest {
 
     @RegisterExtension // registers a JUnit 5 extension that manages the lifecycle of the WireMock server
