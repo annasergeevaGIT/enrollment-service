@@ -32,8 +32,10 @@ public class TestConstants {
     public static final String COURSE_CREATE_ONE_LANGUAGE = "English";
     public static final String COURSE_CREATE_TWO_LANGUAGE = "English";
     public static final String COURSE_CREATE_THREE_LANGUAGE = "English";
-    public static final String USERNAME_ONE = "username1";
+    public static final String USERNAME_ONE = "jane";
     public static final BigDecimal SUCCESS_TOTAL_PRICE = BigDecimal.valueOf(60.6);
+    public static final String USERNAME_NO_ENROLLMENTS = "max";
+    public static final String ADMIN_USERNAME = "alex";
     public static final BigDecimal COURSE_CREATE_ONE_PRICE = BigDecimal.valueOf(10.1);
     public static final BigDecimal COURSE_CREATE_TWO_PRICE = BigDecimal.valueOf(20.2);
     public static final BigDecimal COURSE_CREATE_THREE_PRICE = BigDecimal.valueOf(30.3);

@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,7 +31,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/v1/course-enrollments")
 public class CourseEnrollmentController {
 
-    public static final String USER_HEADER = "X-User-Name";
+    public static final String USERNAME_CLAIM = "preferred_username";
     private final CourseEnrollmentService courseEnrollmentService;
 
     @Operation(
@@ -63,7 +65,8 @@ public class CourseEnrollmentController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<EnrollmentResponse> submitCourseEnrollment(@RequestBody @Valid CreateEnrollmentRequest request,
-                                                           @RequestHeader(USER_HEADER) String username) {
+                                                           @AuthenticationPrincipal Jwt jwt) {
+        var username = jwt.getClaimAsString(USERNAME_CLAIM);
         log.info("Received POST request to submit enrollment: {}", request);
         return courseEnrollmentService.createEnrollment(request, username);
     }
@@ -93,7 +96,8 @@ public class CourseEnrollmentController {
             @RequestParam(value = "sortBy", defaultValue = "DATE_ASC")
             @NotBlank(message = "SortBy parameter must not be blank.")
             String sortBy,
-            @RequestHeader(USER_HEADER) String username) {
+            @AuthenticationPrincipal Jwt jwt) {
+        var username = jwt.getClaimAsString(USERNAME_CLAIM);
         log.info("Received request to GET enrollments of user with name={}", username);
         return courseEnrollmentService.getEnrollmentsOfUser(username, SortBy.fromString(sortBy), from, size);
     }
