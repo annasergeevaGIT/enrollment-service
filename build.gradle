@@ -40,6 +40,7 @@ ext {
 	avroSerializerVersion = '7.6.0'
 	avroVersion = '1.11.3'
 	awaitilityVersion = '4.2.1'
+	lokiAppenderVersion = '2.0.1'
 }
 
 dependencies {
@@ -54,14 +55,16 @@ dependencies {
 	implementation 'org.springframework.retry:spring-retry' //config server
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation "io.confluent:kafka-avro-serializer:${avroSerializerVersion}"
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation "org.apache.avro:avro:${avroVersion}"
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.flywaydb:flyway-core'
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'org.springframework:spring-jdbc' //for Flyway it cant work with r2dbc
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+	runtimeOnly "com.github.loki4j:loki-logback-appender:${lokiAppenderVersion}"
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
