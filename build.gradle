@@ -45,11 +45,15 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${springdocVersion}"
-	implementation 'org.postgresql:r2dbc-postgresql'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	//implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+	//implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-web' //vt
+	//implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:${springdocVersion}"
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+	//implementation 'org.postgresql:r2dbc-postgresql'
+	//implementation "io.micrometer:context-propagation" // only for reactive apps
 	implementation 'org.flywaydb:flyway-database-postgresql'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config' //config server
 	implementation 'org.springframework.retry:spring-retry' //config server
@@ -59,7 +63,6 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
-	implementation "io.micrometer:context-propagation" // only for reactive apps
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.flywaydb:flyway-core'
 	runtimeOnly 'org.postgresql:postgresql'
@@ -70,10 +73,10 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'io.projectreactor:reactor-test' //reactive streams testing
+	//testImplementation 'io.projectreactor:reactor-test' //reactive streams testing
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
-	testImplementation 'org.testcontainers:r2dbc'
+	//testImplementation 'org.testcontainers:r2dbc'
 	testImplementation 'com.squareup.okhttp3:mockwebserver' //HTTP server for mocking external API calls during tests
 	testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
 	testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
