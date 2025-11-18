@@ -16,8 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -33,31 +33,35 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
 
     @Transactional
     @Override
-    public Mono<EnrollmentResponse> createEnrollment(CreateEnrollmentRequest request, String username) {
-        var getInfoRequest = new GetCourseInfoRequest(request.getCourseNames()); // wrap course names into dto object to pass to client
-        return courseClient
-                .getCourseInfo(getInfoRequest) // returns Mono<GetCourseInfoResponse> with course details.
-                .map(response -> enrollmentMapper.mapToEnrollment(request, username, response)) // map to Enrollment entity
-                .flatMap(repository::save) // save to repository and return saved entity as Mono
-                .zipWhen(menuOrder -> {
-                    var outbox = enrollmentOutboxMapper.toOrderOutbox(menuOrder);
-                    return enrollmentPlacedEventRepository.save(outbox);
-                })
-                .map(tuple -> enrollmentMapper.mapToResponse(tuple.getT1()))
-                .doOnError(e -> log.error("Error saving MenuOrder: {}", e.getMessage()))
-                .onErrorMap(this::handleThrowable);
+    public EnrollmentResponse createEnrollment(CreateEnrollmentRequest request, String username) {
+        try {
+            var courseInfoRequest = new GetCourseInfoRequest(request.getCourseNames());
+            var courseInfoResponse = courseClient.getCourseInfo(courseInfoRequest);
+            var enrollment = enrollmentMapper.mapToEnrollment(request, username, courseInfoResponse);
+            var savedEnrollment = repository.save(enrollment);
+            var outboxEvent = enrollmentOutboxMapper.toOrderOutbox(savedEnrollment);
+            enrollmentPlacedEventRepository.save(outboxEvent);
+            return enrollmentMapper.mapToResponse(savedEnrollment);
+
+        } catch (Exception e) {
+            log.error("Error saving Enrollment: {}", e.getMessage());
+            throw handleThrowable(e);
+        }
     }
 
     @Override
-    public Flux<EnrollmentResponse> getEnrollmentsOfUser(String username, SortBy sortBy, int from, int size) {
-        var pageRequest = PageRequest.of(from, size)
-                .withSort(sortBy.getSort());
+    public List<EnrollmentResponse> getEnrollmentsOfUser(String username, SortBy sortBy, int from, int size) {
+        var pageRequest = PageRequest.of(from, size, sortBy.getSort());
+
         return repository.findAllByCreatedBy(username, pageRequest)
-                .map(enrollmentMapper::mapToResponse);
+                .getContent()
+                .stream()
+                .map(enrollmentMapper::mapToResponse)
+                .toList();
     }
 
-    private Throwable handleThrowable(Throwable t) {
-        return (t instanceof EnrollmentServiceException) ? t :
-                new EnrollmentServiceException(t.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    private EnrollmentServiceException handleThrowable(Throwable t) {
+        if (t instanceof EnrollmentServiceException e) return e;
+        return new EnrollmentServiceException(t.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

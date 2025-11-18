@@ -127,7 +127,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"nameToQuantity\": {\n        \"One\": 10,\n        \"Two\": 20,\n        \"Three\": 30\n    },\n    \"address\": {\n        \"city\": \"Vienna\",\n        \"street\": \"Street\",\n        \"house\": 1,\n        \"apartment\": 1\n    }\n}",
+					"raw": "{\n    \"courseNames\": [\n        \"One\",\n        \"Two\",\n        \"Three\"\n    ],\n    \"address\": {\n        \"city\": \"Vienna\",\n        \"street\": \"Street\",\n        \"house\": 1,\n        \"apartment\": 1\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"

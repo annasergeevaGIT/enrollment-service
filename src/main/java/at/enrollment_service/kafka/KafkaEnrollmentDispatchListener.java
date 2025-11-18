@@ -11,6 +11,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -23,6 +24,7 @@ public class KafkaEnrollmentDispatchListener {
     @Value("${kafkaprops.nack-sleep-duration}")
     private Duration nackSleepDuration;
 
+    @Transactional
     @KafkaListener(topics = {"${kafkaprops.enrollment-dispatch-topic}"})
     public void consumeEnrollmentDispatchEvent(EnrollmentDispatchedEvent event,
                                           @Header(KafkaHeaders.RECEIVED_KEY) String key,
@@ -32,8 +34,7 @@ public class KafkaEnrollmentDispatchListener {
         log.info("Received EnrollmentDispatchedEvent from Kafka: {}. Key: {}. Partition: {}. Topic: {}", event, key, partition, topic);
         try {
             courseEnrollmentRepository
-                    .updateStatusById(event.getEnrollmentId(), EnrollmentStatus.fromString(event.getStatus().name()))
-                    .block();
+                    .updateStatusById(event.getEnrollmentId(), EnrollmentStatus.fromString(event.getStatus().name()));
             log.info("Successfully updated EnrollmentStatus to {} for enrollment with ID={}", event.getStatus(), event.getEnrollmentId());
             acknowledgment.acknowledge();
         } catch (Exception e) {

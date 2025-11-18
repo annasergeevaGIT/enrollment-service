@@ -19,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Tag(name = "CourseEnrollmentController", description = "REST API for managing course enrollments.")
 @Slf4j
@@ -62,7 +62,7 @@ public class CourseEnrollmentController {
     })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<EnrollmentResponse> submitCourseEnrollment(@RequestBody @Valid CreateEnrollmentRequest request,
+    public EnrollmentResponse submitCourseEnrollment(@RequestBody @Valid CreateEnrollmentRequest request,
                                                            @RequestHeader(USER_HEADER) String username) {
         log.info("Received POST request to submit enrollment: {}", request);
         return courseEnrollmentService.createEnrollment(request, username);
@@ -83,7 +83,7 @@ public class CourseEnrollmentController {
             )
     })
     @GetMapping
-    public Flux<EnrollmentResponse> getEnrollmentsOfUser(
+    public List<EnrollmentResponse> getEnrollmentsOfUser(
             @RequestParam(value= "from", defaultValue = "0")
             @PositiveOrZero(message = "From index must be zero or positive.")
             int from,

@@ -15,9 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import static at.enrollment_service.testdata.TestConstants.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CourseClientTest {
 
@@ -46,10 +45,10 @@ class CourseClientTest {
     void setupServer() throws Exception {
         mockWebServer = new MockWebServer(); // local in memory HTTP server
         mockWebServer.start();
-        var webClient = WebClient.builder() //route client to base url of mockWebServer
+        var restClient = RestClient.builder() //route client to base url of mockWebServer
                 .baseUrl(mockWebServer.url("/").uri().toString())
                 .build(); //directs all WebClient calls to the mock server instead of the real service
-        courseClient = new CourseClient(webClient, props); //Instance client under test. injects the test WebClient and fake props to test its behavior.
+        courseClient = new CourseClient(restClient, props); //Instance client under test. injects the test WebClient and fake props to test its behavior.
     }
 
     @AfterEach
@@ -58,77 +57,81 @@ class CourseClientTest {
     }
 
     @Test
-    void getCourseInfo_returnsError_whenTimeout() throws Exception { //Simulates the Course Service taking too long to respond
-        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DELAY_MILLIS, TimeUnit.MILLISECONDS));
+    void getCourseInfo_returnsError_whenTimeout() throws Exception {
+        // Simulates the Course Service taking too long to respond (must exceed DEFAULT_TIMEOUT)
+        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DEFAULT_TIMEOUT.toMillis() * 2, TimeUnit.MILLISECONDS));
 
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        Mono<GetCourseInfoResponse> response = courseClient.getCourseInfo(request); //Sends the request via reactive WebClient to the mock server.
 
-        StepVerifier.create(response) //when the response takes too long, the client throws an EnrollmentServiceException
-                .expectError(EnrollmentServiceException.class)
-                .verify();
-        verifyNumberOfPostRequests(4); // client retried 3 times + 1 initial attempt before failing
+        // CHANGE: Use assertThrows for blocking exceptions instead of StepVerifier
+        assertThrows(EnrollmentServiceException.class, () -> {
+            courseClient.getCourseInfo(request);
+        });
+
+        verifyNumberOfPostRequests(RETRY_COUNT + 1); // client retried 3 times + 1 initial attempt before failing
     }
 
     @Test
     void getCourseInfo_returnsInfo_whenRetriesSucceed() throws Exception {
-        // on first request server responds with SERVICE_UNAVAILABLE
         mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
-        // on second request server responds with a delay (1500ms)
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DELAY_MILLIS, TimeUnit.MILLISECONDS));
-        // on third request server responds without delay
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
 
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        Mono<GetCourseInfoResponse> response = courseClient.getCourseInfo(request);
+
+        // CHANGE: Call blocking method directly
+        GetCourseInfoResponse response = courseClient.getCourseInfo(request);
         assertResponseCorrect(response);
         verifyNumberOfPostRequests(3);
     }
 
     @Test
     void getCourseInfo_returnsErrorWhenServiceUnavailableAndAllRetriesExhausted() throws Exception {
-        mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
-        var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        Mono<GetCourseInfoResponse> response = courseClient.getCourseInfo(request);
+        // Enqueue 4 failures (initial + 3 retries)
+        for (int i = 0; i < RETRY_COUNT + 1; i++) {
+            mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
+        }
 
-        StepVerifier.create(response)
-                .expectError(EnrollmentServiceException.class)
-                .verify();
-        verifyNumberOfPostRequests(4);
+        var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
+
+        // CHANGE: Use assertThrows for blocking exceptions
+        assertThrows(EnrollmentServiceException.class, () -> {
+            courseClient.getCourseInfo(request);
+        });
+
+        verifyNumberOfPostRequests(RETRY_COUNT + 1);
     }
 
     @Test
     void getCourseInfo_returnsInfo_whenAllIsOk() throws Exception {
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        Mono<GetCourseInfoResponse> response = courseClient.getCourseInfo(request);
+
+        // CHANGE: Call blocking method directly
+        GetCourseInfoResponse response = courseClient.getCourseInfo(request);
         assertResponseCorrect(response);
         verifyNumberOfPostRequests(1);
     }
 
-    private void assertResponseCorrect(Mono<GetCourseInfoResponse> response) {
-        StepVerifier.create(response)
-                .expectNextMatches(result -> {
-                    List<CourseInfo> courseInfos = result.getCourseInfos();
-                    courseInfos.sort(Comparator.comparing(CourseInfo::getName));
-                    AssertionsForInterfaceTypes.assertThat(courseInfos)
-                            .map(CourseInfo::getName)
-                            .containsExactly("One", "Three", "Two");
-                    AssertionsForInterfaceTypes.assertThat(courseInfos)
-                            .map(CourseInfo::getPrice)
-                            .containsExactly(
-                                    BigDecimal.valueOf(10.1),
-                                    BigDecimal.valueOf(30.3),
-                                    null
-                            );
-                    AssertionsForInterfaceTypes.assertThat(courseInfos)
-                            .map(CourseInfo::getIsAvailable)
-                            .containsExactly(
-                                    true, true, false
-                            );
-                    return true;
-                })
-                .verifyComplete();
+    private void assertResponseCorrect(GetCourseInfoResponse result) {
+        List<CourseInfo> courseInfos = result.getCourseInfos();
+        courseInfos.sort(Comparator.comparing(CourseInfo::getName));
+
+        AssertionsForInterfaceTypes.assertThat(courseInfos)
+                .map(CourseInfo::getName)
+                .containsExactly("One", "Three", "Two");
+
+        AssertionsForInterfaceTypes.assertThat(courseInfos)
+                .map(CourseInfo::getPrice)
+                .containsExactly(
+                        BigDecimal.valueOf(10.1),
+                        BigDecimal.valueOf(30.3),
+                        null
+                );
+
+        AssertionsForInterfaceTypes.assertThat(courseInfos)
+                .map(CourseInfo::getIsAvailable)
+                .containsExactly(true, true, false);
     }
 
 

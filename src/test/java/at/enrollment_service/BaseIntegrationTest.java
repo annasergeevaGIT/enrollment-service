@@ -14,14 +14,8 @@ import static at.enrollment_service.testdata.TestDataProvider.readPartiallySucce
 import static at.enrollment_service.testdata.TestDataProvider.readSuccessfulResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-/**
- * Base integration test class extending {@link BaseTest} that sets up a WireMock server
- * to simulate responses from the external Course Service.
- * The {@link WireMockExtension} automatically starts and stops the server for all tests.
- * Provides helper methods to prepare common stub responses (success, partial success, timeout, and service unavailable).
- */
 
-@ActiveProfiles("test")
+
 @SpringBootTest
 @Import(TestWebClientConfig.class)
 public class BaseIntegrationTest extends BaseTest {

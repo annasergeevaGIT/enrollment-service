@@ -1,17 +1,20 @@
 package at.enrollment_service.exception;
 
+import jakarta.servlet.http.HttpServletRequest; // 1. Import blocking request type
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException; // 2. Standard WebMVC exception for @RequestBody validation errors
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import reactor.core.publisher.Mono;
+import org.springframework.web.context.request.WebRequest; // Used for a more generic request context
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,72 +23,73 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    /**
-     * Exception handler that triggers when there are validation errors in the request body.
-     */
-    @ExceptionHandler(WebExchangeBindException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleValidationExceptions(WebExchangeBindException ex, ServerHttpRequest request) {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+
+    public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
 
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getGlobalErrors().forEach(e -> {
+
+        ex.getBindingResult().getGlobalErrors().forEach((ObjectError e) -> {
             errors.put(e.getObjectName(), e.getDefaultMessage());
         });
-        ex.getBindingResult().getFieldErrors().forEach(e -> {
+        ex.getBindingResult().getFieldErrors().forEach((FieldError e) -> {
             errors.put(e.getField(), e.getDefaultMessage());
         });
         log.error("Intercepted validation exception. Errors: {}", errors);
 
         var pd = createProblemDetail(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
         pd.setProperty("invalid_params", errors);
-        return Mono.just(new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST));
+
+        return new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST);
     }
 
-    /**
-     * Exception handler that triggers when the request body cannot be read.
-     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, ServerHttpRequest request) {
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
         log.error("Intercepted HttpMessageNotReadableException. Message: {}", ex.getMessage());
         var badRequest = HttpStatus.BAD_REQUEST;
         ProblemDetail pd = createProblemDetail(ex.getMessage(), badRequest, request);
-        return Mono.just(new ResponseEntity<>(pd, badRequest));
+
+        return new ResponseEntity<>(pd, badRequest);
     }
 
-    /**
-     * Exception handler that triggers when there are validation errors on method parameters
-     * annotated with @Valid in restController methods,
-     * for example: @PathVariable("id") @Positive(message = "id must be > 0.") @Valid Long id.
-     */
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleHandlerMethodValidationException(HandlerMethodValidationException ex, ServerHttpRequest request) {
+    public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(HandlerMethodValidationException ex, HttpServletRequest request) {
         var pd = ex.getBody();
         Map<String, String> errors = new HashMap<>();
+
         ex.getParameterValidationResults().forEach(result -> {
             result.getResolvableErrors().forEach(e -> {
                 errors.put(result.getMethodParameter().getParameterName(), e.getDefaultMessage());
             });
         });
+
         log.error("Intercepted HandlerMethodValidationException. Errors: {}", errors);
         pd.setProperty("invalid_params", errors);
         pd.setStatus(HttpStatus.BAD_REQUEST);
-        pd.setInstance(request.getURI());
-        return Mono.just(new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST));
-    }
+        pd.setInstance(createUri(request)); // Use helper method
 
-    /**
-     * Exception handler that triggers for EnrollmentServiceException.
-     */
+        return new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(EnrollmentServiceException.class)
-    public Mono<ResponseEntity<ProblemDetail>> handleEnrollmentServiceException(EnrollmentServiceException ex, ServerHttpRequest request) {
+    public ResponseEntity<ProblemDetail> handleEnrollmentServiceException(EnrollmentServiceException ex, HttpServletRequest request) {
         log.error("Intercepted EnrollmentServiceException. Status: {}, Message: {}", ex.getStatus(), ex.getMessage());
         var pd = createProblemDetail(ex.getMessage(), ex.getStatus(), request);
-        return Mono.just(new ResponseEntity<>(pd, ex.getStatus()));
+
+        return new ResponseEntity<>(pd, ex.getStatus());
     }
 
-    private static ProblemDetail createProblemDetail(String message, HttpStatus status, ServerHttpRequest request) {
+    private static ProblemDetail createProblemDetail(String message, HttpStatus status, HttpServletRequest request) {
         var pd = ProblemDetail.forStatusAndDetail(status, message);
         pd.setProperty("timestamp", Instant.now());
-        pd.setInstance(request.getURI());
+        pd.setInstance(createUri(request));
         return pd;
+    }
+
+    private static URI createUri(HttpServletRequest request) {
+        try {
+            return URI.create(request.getRequestURI());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

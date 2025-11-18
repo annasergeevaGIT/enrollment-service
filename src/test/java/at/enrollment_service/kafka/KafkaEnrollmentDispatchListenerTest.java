@@ -60,7 +60,7 @@ class KafkaEnrollmentDispatchListenerTest extends BaseTest {
 
     @Test
     void consumeEnrollmentDispatchEvent_consumesEventAndUpdatesCourseEnrollmentStatus() throws Exception {
-        CourseEnrollment enrollment = courseEnrollmentRepository.findAll().blockFirst();
+        CourseEnrollment enrollment = courseEnrollmentRepository.findAll().stream().findFirst().orElseThrow();;
         assertThat(enrollment.getStatus()).isEqualTo(EnrollmentStatus.NEW);
 
         EnrollmentDispatchedEvent event = EnrollmentDispatchedEvent.newBuilder()
@@ -73,7 +73,7 @@ class KafkaEnrollmentDispatchListenerTest extends BaseTest {
                 .await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    CourseEnrollment updated = courseEnrollmentRepository.findById(enrollment.getId()).block();
+                    CourseEnrollment updated = courseEnrollmentRepository.findById(enrollment.getId()).orElse(null);
                     assertThat(updated.getStatus()).isEqualTo(EnrollmentStatus.ACCEPTED);
                 });
     }
