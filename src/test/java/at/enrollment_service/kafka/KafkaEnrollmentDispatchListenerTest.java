@@ -7,7 +7,7 @@ import at.enrollment_service.SchemaRegistryContainer;
 import at.enrollment_service.TestWebClientConfig;
 import at.enrollment_service.model.CourseEnrollment;
 import at.enrollment_service.model.EnrollmentStatus;
-import at.enrollment_service.repository.CourseEnrollmentReopsitory;
+import at.enrollment_service.repository.CourseEnrollmentRepository;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class KafkaEnrollmentDispatchListenerTest extends BaseTest {
     private KafkaTemplate<String, EnrollmentDispatchedEvent> kafkaTemplate;
 
     @Autowired
-    private CourseEnrollmentReopsitory courseEnrollmentRepository;
+    private CourseEnrollmentRepository courseEnrollmentRepository;
 
     @Test
     void consumeEnrollmentDispatchEvent_consumesEventAndUpdatesCourseEnrollmentStatus() throws Exception {

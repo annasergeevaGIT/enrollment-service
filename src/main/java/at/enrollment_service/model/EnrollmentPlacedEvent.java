@@ -22,8 +22,10 @@ public class EnrollmentPlacedEvent implements Persistable<Long> {
     @Id
     @Column(name = "enrollment_id")
     private Long enrollmentId;
+
     @Column(name = "created_by")
     private String createdBy;
+
     private String city;
     private String street;
     private int house;

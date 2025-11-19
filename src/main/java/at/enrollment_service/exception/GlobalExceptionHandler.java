@@ -25,22 +25,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
 
-    public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
-
+    public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
 
-        ex.getBindingResult().getGlobalErrors().forEach((ObjectError e) -> {
-            errors.put(e.getObjectName(), e.getDefaultMessage());
-        });
-        ex.getBindingResult().getFieldErrors().forEach((FieldError e) -> {
-            errors.put(e.getField(), e.getDefaultMessage());
-        });
-        log.error("Intercepted validation exception. Errors: {}", errors);
-
-        var pd = createProblemDetail(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
+        var pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation Failed");
         pd.setProperty("invalid_params", errors);
-
-        return new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.badRequest().body(pd);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -56,17 +47,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(HandlerMethodValidationException ex, HttpServletRequest request) {
         var pd = ex.getBody();
         Map<String, String> errors = new HashMap<>();
-
         ex.getParameterValidationResults().forEach(result -> {
             result.getResolvableErrors().forEach(e -> {
                 errors.put(result.getMethodParameter().getParameterName(), e.getDefaultMessage());
             });
         });
-
         log.error("Intercepted HandlerMethodValidationException. Errors: {}", errors);
         pd.setProperty("invalid_params", errors);
         pd.setStatus(HttpStatus.BAD_REQUEST);
-        pd.setInstance(createUri(request)); // Use helper method
+        pd.setInstance(createUri(request));
 
         return new ResponseEntity<>(pd, HttpStatus.BAD_REQUEST);
     }

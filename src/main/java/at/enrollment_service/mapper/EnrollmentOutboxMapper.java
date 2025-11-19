@@ -1,4 +1,4 @@
-package at.enrollment_service.model.mapper;
+package at.enrollment_service.mapper;
 
 import at.enrollment_service.model.CourseEnrollment;
 import at.enrollment_service.model.EnrollmentPlacedEvent;

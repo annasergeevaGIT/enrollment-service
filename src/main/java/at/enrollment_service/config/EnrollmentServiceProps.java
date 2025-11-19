@@ -1,7 +1,10 @@
 package at.enrollment_service.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 /*
@@ -9,12 +12,15 @@ import java.time.Duration;
 * initialized by application.properties with prefix "external"
  */
 @Data
+@AllArgsConstructor
+@Component
+@NoArgsConstructor
 @ConfigurationProperties(prefix = "external") //scanned by @ConfigurationPropertiesScan
 public class EnrollmentServiceProps {
-    private final String courseServiceUrl;
-    private final String courseInfoPath;
-    private final Duration defaultTimeout;
-    private final Duration retryBackoff;
-    private final int retryCount;
-    private final double retryJitter;
+    private String courseServiceUrl;
+    private String courseInfoPath;
+    private Duration defaultTimeout;
+    private Duration retryBackoff;
+    private int retryCount;
+    private double retryJitter;
 }

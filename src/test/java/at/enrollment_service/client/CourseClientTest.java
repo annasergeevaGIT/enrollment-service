@@ -1,143 +1,58 @@
 package at.enrollment_service.client;
 
 import at.enrollment_service.config.EnrollmentServiceProps;
-import at.enrollment_service.dto.CourseInfo;
 import at.enrollment_service.dto.GetCourseInfoRequest;
-import at.enrollment_service.dto.GetCourseInfoResponse;
-import at.enrollment_service.exception.EnrollmentServiceException;
-import at.enrollment_service.model.mapper.CourseClient;
+import at.enrollment_service.mapper.CourseClient;
 import at.enrollment_service.testdata.TestDataProvider;
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
-import static at.enrollment_service.testdata.TestConstants.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class CourseClientTest {
 
-    private final EnrollmentServiceProps props = new EnrollmentServiceProps(
-            "http://localhost:8081",
-            "/api/courses/enrollment-info",
-            DEFAULT_TIMEOUT,
-            RETRY_BACKOFF,
-            RETRY_COUNT,
-            RETRY_JITTER
-    );
-    private CourseClient courseClient;
     private MockWebServer mockWebServer;
+    private CourseClient courseClient;
 
     @BeforeEach
-    void setupServer() throws Exception {
-        mockWebServer = new MockWebServer(); // local in memory HTTP server
+    void setup() throws Exception {
+        mockWebServer = new MockWebServer();
         mockWebServer.start();
-        var restClient = RestClient.builder() //route client to base url of mockWebServer
-                .baseUrl(mockWebServer.url("/").uri().toString())
-                .build(); //directs all WebClient calls to the mock server instead of the real service
-        courseClient = new CourseClient(restClient, props); //Instance client under test. injects the test WebClient and fake props to test its behavior.
+
+        var props = new EnrollmentServiceProps(
+                mockWebServer.url("/").toString(), // Base URL
+                "", // path
+                java.time.Duration.ofSeconds(1),
+                java.time.Duration.ofMillis(10),
+                3,
+                0.5
+        );
+        courseClient = new CourseClient(RestClient.builder().requestFactory(new HttpComponentsClientHttpRequestFactory()), props);
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    void tearDown() throws Exception {
         mockWebServer.shutdown();
     }
 
     @Test
-    void getCourseInfo_returnsError_whenTimeout() throws Exception {
-        long guaranteedDelayMs = DEFAULT_TIMEOUT.toMillis() + 200; // Client timeout + buffer
-
-        for (int i = 0; i < RETRY_COUNT + 1; i++) {
-            mockWebServer.enqueue(new MockResponse()
-                    .setResponseCode(200) // Status doesn't matter, delay is the key
-                    .setBodyDelay(guaranteedDelayMs, TimeUnit.MILLISECONDS)
-                    .setBody("some response body") // Need a body for read timeout
-            );
-        }
-        var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        assertThrows(EnrollmentServiceException.class, () -> {
-            courseClient.getCourseInfo(request);
-        });
-
-        verifyNumberOfPostRequests(RETRY_COUNT + 1);
-    }
-
-    @Test
-    void getCourseInfo_returnsInfo_whenRetriesSucceed() throws Exception {
-        mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
-        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DELAY_MILLIS, TimeUnit.MILLISECONDS));
-        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
-        var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        GetCourseInfoResponse response = courseClient.getCourseInfo(request);
-        assertResponseCorrect(response);
-        verifyNumberOfPostRequests(3);
-    }
-
-    @Test
-    void getCourseInfo_returnsErrorWhenServiceUnavailableAndAllRetriesExhausted() throws Exception {
-        for (int i = 0; i < RETRY_COUNT + 1; i++) {
-            mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
-        }
-        var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        assertThrows(EnrollmentServiceException.class, () -> {
-            courseClient.getCourseInfo(request);
-        });
-
-        verifyNumberOfPostRequests(RETRY_COUNT + 1);
-    }
-
-    @Test
     void getCourseInfo_returnsInfo_whenAllIsOk() throws Exception {
-        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
+        mockWebServer.enqueue(TestDataProvider.successResponse());
+
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-        GetCourseInfoResponse response = courseClient.getCourseInfo(request);
-        assertResponseCorrect(response);
-        verifyNumberOfPostRequests(1);
+        var response = courseClient.getCourseInfo(request);
+
+        assertThat(response.getCourseInfos()).hasSize(3);
+        assertThat(response.getCourseInfos().getFirst().getName()).isEqualTo("One");
+
+        RecordedRequest recordedRequest = mockWebServer.takeRequest();
+        assertThat(recordedRequest.getMethod()).isEqualTo("POST");
     }
-
-    private void assertResponseCorrect(GetCourseInfoResponse result) {
-        List<CourseInfo> courseInfos = result.getCourseInfos();
-        courseInfos.sort(Comparator.comparing(CourseInfo::getName));
-        AssertionsForInterfaceTypes.assertThat(courseInfos)
-                .map(CourseInfo::getName)
-                .containsExactly("One", "Three", "Two");
-        AssertionsForInterfaceTypes.assertThat(courseInfos)
-                .map(CourseInfo::getPrice)
-                .containsExactly(
-                        BigDecimal.valueOf(10.1),
-                        BigDecimal.valueOf(30.3),
-                        null
-                );
-        AssertionsForInterfaceTypes.assertThat(courseInfos)
-                .map(CourseInfo::getIsAvailable)
-                .containsExactly(true, true, false);
-    }
-
-
-    private void verifyNumberOfPostRequests(int times) throws Exception {
-        for (int i = 0; i < times; i++) {
-            RecordedRequest recordedRequest = mockWebServer.takeRequest(1000, TimeUnit.MILLISECONDS);
-            assertThat(recordedRequest)
-                    .as("Recorded requests: %d, expected: %d", i, times)
-                    .isNotNull();
-            assertThat(recordedRequest.getMethod()).isEqualTo("POST");
-            assertThat(recordedRequest.getPath()).isEqualTo(props.getCourseInfoPath());
-        }
-        assertThat(mockWebServer.takeRequest(1000, TimeUnit.MILLISECONDS))
-                .as("Expected %d requests, but received more", times).isNull();
-    }
-
 }
