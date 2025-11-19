@@ -11,8 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface CourseEnrollmentReopsitory extends JpaRepository<CourseEnrollment, Long> {
-
-    //Pageable limits query results using page, size, and sort parameters, instead of loading all data at once
     Page<CourseEnrollment> findAllByCreatedBy(String username, Pageable pageable);
 
     @Transactional

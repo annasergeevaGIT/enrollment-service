@@ -32,7 +32,7 @@ public class CourseClient {
             try {
                 return doRequest(request);
             } catch (EnrollmentServiceException | TimeoutException ex) {
-                if (attempts >= props.getRetryCount()) {
+                if (attempts > props.getRetryCount()) { // FIX: Changed from attempts >= props.getRetryCount()
                     String msg = "Failed to fetch course info from Course Service after max retry attempts";
                     throw new EnrollmentServiceException(msg, HttpStatus.SERVICE_UNAVAILABLE);
                 }

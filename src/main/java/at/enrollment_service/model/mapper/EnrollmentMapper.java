@@ -54,7 +54,7 @@ public class EnrollmentMapper {
         if (hasUnavailable) {
             var msg = String.format("Cannot create enrollment, because some courses are not available: %s",
                     infos);
-            throw new EnrollmentServiceException(msg, HttpStatus.NOT_FOUND);
+            throw new EnrollmentServiceException(msg, HttpStatus.NOT_FOUND); // Throws NOT_FOUND
         }
     }
 

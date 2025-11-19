@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -21,6 +22,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @AutoConfigureWebTestClient(timeout = "20000") // Increase timeout for WebTestClient
 @EnableAutoConfiguration(exclude = {KafkaAutoConfiguration.class})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CourseEnrollmentControllerTest extends BaseIntegrationTest {
 
     @Autowired

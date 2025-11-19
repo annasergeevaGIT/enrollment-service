@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:16.1:///test_database
+    username: user
+    password: password
+  cloud:
+    config:
+      enabled: false        # Completely disable Spring Cloud Config for tests
+  config:
+    import: "optional:"             # Override the import property so configserver is not used
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  main:
+    allow-bean-definition-overriding: true
+
+eureka:
+  client:
+    enabled: false          # Disable Eureka client during tests

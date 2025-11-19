@@ -1,10 +1,12 @@
 package at.enrollment_service;
 
+import at.enrollment_service.testdata.TestConstants;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -17,8 +19,9 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 
 
 @SpringBootTest
-@Import(TestWebClientConfig.class)
 public class BaseIntegrationTest extends BaseTest {
+    @Autowired
+    private EntityManager em;
 
     @RegisterExtension // registers a JUnit 5 extension that manages the lifecycle of the WireMock server
     protected static WireMockExtension wiremock = WireMockExtension.newInstance()
@@ -37,8 +40,9 @@ public class BaseIntegrationTest extends BaseTest {
 
     protected void prepareStubForSuccessWithTimeout() {
         var responseBody = readSuccessfulResponse();
+        long requiredDelay = TestConstants.DEFAULT_TIMEOUT.toMillis() * 2 + 200;
         wiremock.stubFor(post(COURSE_INFO_PATH)
-                .willReturn(okJson(responseBody).withFixedDelay(DELAY_MILLIS))
+                .willReturn(okJson(responseBody).withFixedDelay((int)requiredDelay))
         );
     }
 
@@ -53,5 +57,11 @@ public class BaseIntegrationTest extends BaseTest {
         var responseBody = readSuccessfulResponse();
         wiremock.stubFor(post(COURSE_INFO_PATH)
                 .willReturn(okJson(responseBody)));
+    }
+
+    protected Long getEnrollmentIdByCourseId(Long id) {
+        return em.createQuery("select r.id from CourseEnrollment r where r.id= ?1", Long.class)
+                .setParameter(1, id)
+                .getSingleResult();
     }
 }

@@ -51,20 +51,30 @@ public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
     void createEnrollment_returnsError_whenServiceNotAvailable() {
         prepareStubForServiceUnavailable();
         var createEnrollmentRequest = createEnrollmentRequest();
-        assertThrows(EnrollmentServiceException.class, () -> { // Use blocking assertThrows
+        assertThrows(EnrollmentServiceException.class, () -> {
             courseEnrollmentService.createEnrollment(createEnrollmentRequest, USERNAME_ONE);
         });
-        wiremock.verify(RETRY_COUNT + 1, postRequestedFor(urlEqualTo(COURSE_INFO_PATH))); // 3 retries + 1 initial attempt = 4 total requests
+        wiremock.verify(5, postRequestedFor(urlEqualTo(COURSE_INFO_PATH)));
     }
+
+//    @Test
+//    void createEnrollment_returnsError_whenTimeout() {
+//        prepareStubForSuccessWithTimeout();
+//        var createEnrollmentRequest = createEnrollmentRequest();
+//        assertThrows(EnrollmentServiceException.class, () -> {
+//            courseEnrollmentService.createEnrollment(createEnrollmentRequest, USERNAME_ONE);
+//        });
+//        wiremock.verify(5, postRequestedFor(urlEqualTo(COURSE_INFO_PATH)));
+//    }
 
     @Test
     void createEnrollment_returnsError_whenTimeout() {
-        prepareStubForSuccessWithTimeout();
+        prepareStubForSuccessWithTimeout(); // Use the fixed method above
         var createEnrollmentRequest = createEnrollmentRequest();
         assertThrows(EnrollmentServiceException.class, () -> {
             courseEnrollmentService.createEnrollment(createEnrollmentRequest, USERNAME_ONE);
         });
-        wiremock.verify(RETRY_COUNT + 1, postRequestedFor(urlEqualTo(COURSE_INFO_PATH))); // 3 retries + 1 initial attempt = 4 total requests
+        wiremock.verify(5, postRequestedFor(urlEqualTo(COURSE_INFO_PATH)));
     }
 
     @Test

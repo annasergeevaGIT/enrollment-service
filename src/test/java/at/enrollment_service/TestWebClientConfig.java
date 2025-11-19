@@ -15,7 +15,6 @@ public class TestWebClientConfig {
     }
 
     @Bean
-    // CHANGE: Method signature changed to return RestClient
     public RestClient restClient(RestClient.Builder builder) {
         return builder.baseUrl(props.getCourseServiceUrl()).build();
     }

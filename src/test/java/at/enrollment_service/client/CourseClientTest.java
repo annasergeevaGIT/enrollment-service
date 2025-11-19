@@ -58,17 +58,21 @@ class CourseClientTest {
 
     @Test
     void getCourseInfo_returnsError_whenTimeout() throws Exception {
-        // Simulates the Course Service taking too long to respond (must exceed DEFAULT_TIMEOUT)
-        mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DEFAULT_TIMEOUT.toMillis() * 2, TimeUnit.MILLISECONDS));
+        long guaranteedDelayMs = DEFAULT_TIMEOUT.toMillis() + 200; // Client timeout + buffer
 
+        for (int i = 0; i < RETRY_COUNT + 1; i++) {
+            mockWebServer.enqueue(new MockResponse()
+                    .setResponseCode(200) // Status doesn't matter, delay is the key
+                    .setBodyDelay(guaranteedDelayMs, TimeUnit.MILLISECONDS)
+                    .setBody("some response body") // Need a body for read timeout
+            );
+        }
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-
-        // CHANGE: Use assertThrows for blocking exceptions instead of StepVerifier
         assertThrows(EnrollmentServiceException.class, () -> {
             courseClient.getCourseInfo(request);
         });
 
-        verifyNumberOfPostRequests(RETRY_COUNT + 1); // client retried 3 times + 1 initial attempt before failing
+        verifyNumberOfPostRequests(RETRY_COUNT + 1);
     }
 
     @Test
@@ -76,10 +80,7 @@ class CourseClientTest {
         mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse().setBodyDelay(DELAY_MILLIS, TimeUnit.MILLISECONDS));
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
-
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-
-        // CHANGE: Call blocking method directly
         GetCourseInfoResponse response = courseClient.getCourseInfo(request);
         assertResponseCorrect(response);
         verifyNumberOfPostRequests(3);
@@ -87,14 +88,10 @@ class CourseClientTest {
 
     @Test
     void getCourseInfo_returnsErrorWhenServiceUnavailableAndAllRetriesExhausted() throws Exception {
-        // Enqueue 4 failures (initial + 3 retries)
         for (int i = 0; i < RETRY_COUNT + 1; i++) {
             mockWebServer.enqueue(new MockResponse().setResponseCode(HttpStatus.SERVICE_UNAVAILABLE.value()));
         }
-
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-
-        // CHANGE: Use assertThrows for blocking exceptions
         assertThrows(EnrollmentServiceException.class, () -> {
             courseClient.getCourseInfo(request);
         });
@@ -106,8 +103,6 @@ class CourseClientTest {
     void getCourseInfo_returnsInfo_whenAllIsOk() throws Exception {
         mockWebServer.enqueue(TestDataProvider.partialSuccessResponse());
         var request = new GetCourseInfoRequest(Set.of("One", "Two", "Three"));
-
-        // CHANGE: Call blocking method directly
         GetCourseInfoResponse response = courseClient.getCourseInfo(request);
         assertResponseCorrect(response);
         verifyNumberOfPostRequests(1);
@@ -116,11 +111,9 @@ class CourseClientTest {
     private void assertResponseCorrect(GetCourseInfoResponse result) {
         List<CourseInfo> courseInfos = result.getCourseInfos();
         courseInfos.sort(Comparator.comparing(CourseInfo::getName));
-
         AssertionsForInterfaceTypes.assertThat(courseInfos)
                 .map(CourseInfo::getName)
                 .containsExactly("One", "Three", "Two");
-
         AssertionsForInterfaceTypes.assertThat(courseInfos)
                 .map(CourseInfo::getPrice)
                 .containsExactly(
@@ -128,7 +121,6 @@ class CourseClientTest {
                         BigDecimal.valueOf(30.3),
                         null
                 );
-
         AssertionsForInterfaceTypes.assertThat(courseInfos)
                 .map(CourseInfo::getIsAvailable)
                 .containsExactly(true, true, false);
@@ -137,8 +129,6 @@ class CourseClientTest {
 
     private void verifyNumberOfPostRequests(int times) throws Exception {
         for (int i = 0; i < times; i++) {
-            // Asserts that the expected number of POST requests were made to the mock server.
-            // make a timeout so that test does not hang indefinitely
             RecordedRequest recordedRequest = mockWebServer.takeRequest(1000, TimeUnit.MILLISECONDS);
             assertThat(recordedRequest)
                     .as("Recorded requests: %d, expected: %d", i, times)
