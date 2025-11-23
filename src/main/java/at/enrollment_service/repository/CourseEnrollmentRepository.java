@@ -10,13 +10,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface CourseEnrollmentReopsitory extends JpaRepository<CourseEnrollment, Long> {
+public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollment, Long> {
 
     //Pageable limits query results using page, size, and sort parameters, instead of loading all data at once
     Page<CourseEnrollment> findAllByCreatedBy(String username, Pageable pageable);
 
     @Transactional
-    @Modifying
-    @Query("UPDATE CourseEnrollment e SET e.status = :status WHERE e.id = :id")
-    void updateStatusById(@Param("id") Long id, @Param("status") EnrollmentStatus newStatus);
-}
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE CourseEnrollment e SET e.status = :newStatus, e.updatedAt = CURRENT_TIMESTAMP() WHERE e.id = :enrollmentId")
+    int updateStatusById(Long enrollmentId, EnrollmentStatus newStatus);}

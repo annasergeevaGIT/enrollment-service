@@ -9,9 +9,7 @@ import org.springframework.web.client.RestClient;
 
 import java.net.http.HttpClient;
 
-/*
-* basic configuration of WebClient for communication with the Course Service.
- */
+//basic configuration of WebClient for communication with the Course Service.
 @RequiredArgsConstructor
 @Configuration
 @EnableConfigurationProperties(EnrollmentServiceProps.class)
@@ -21,9 +19,11 @@ public class RestClientConfig {
 
     @Bean
     public RestClient restClient(RestClient.Builder builder) {
+
+        // Force HTTP/1.1 to avoid intermittent HTTP/2 RST_STREAM issues with WireMock/JDK client.
         HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(props.getDefaultTimeout())
                 .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(props.getDefaultTimeout())
                 .build();
 
         var requestFactory = new JdkClientHttpRequestFactory(httpClient);

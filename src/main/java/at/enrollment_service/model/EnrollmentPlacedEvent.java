@@ -6,10 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.data.domain.Persistable;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import java.time.LocalDateTime;
-
 import static at.enrollment_service.model.DateUtil.DATE_FORMAT;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter

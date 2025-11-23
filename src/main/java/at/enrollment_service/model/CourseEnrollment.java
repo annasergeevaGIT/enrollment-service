@@ -8,23 +8,23 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.format.annotation.DateTimeFormat;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
+
+import static at.enrollment_service.model.DateUtil.DATE_FORMAT;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity // JPA annotation
-@Table(name ="enrollments") // not jakarta but spring data r2dbc annotation
+@Entity
+@Table(name ="enrollments")
 public class CourseEnrollment {
-    @Id // jakarta for vt and spring data r2dbc annotation for reactive
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name ="total_price") // not jakarta but spring data r2dbc annotation
+    @Column(name ="total_price") 
     private BigDecimal totalPrice;
     private String city;
     private String street;
@@ -32,18 +32,18 @@ public class CourseEnrollment {
     private int apartment;
     @Column(name ="course_line_items", columnDefinition = "jsonb")
     @Type(JsonBinaryType.class)
-    private List<CourseLineItem> courseLineItems;
+    private CourseCollection courseCollection;
     @Enumerated(EnumType.STRING)
     private EnrollmentStatus status;
     @Column(name ="created_by")
     private String createdBy;
     @Column(name ="created_at")
     @CreationTimestamp
-    @DateTimeFormat(pattern = DateUtil.DATE_FORMAT)
+    @DateTimeFormat(pattern = DATE_FORMAT)
     private LocalDateTime createdAt;
     @Column(name ="updated_at")
-    @UpdateTimestamp
-    @DateTimeFormat(pattern = DateUtil.DATE_FORMAT)
+    @CreationTimestamp
+    @DateTimeFormat(pattern = DATE_FORMAT)
     private LocalDateTime updatedAt;
 
     @Override

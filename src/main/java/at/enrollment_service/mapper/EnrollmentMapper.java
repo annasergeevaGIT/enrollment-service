@@ -1,7 +1,8 @@
-package at.enrollment_service.model.mapper;
+package at.enrollment_service.mapper;
 
 import at.enrollment_service.dto.*;
 import at.enrollment_service.exception.EnrollmentServiceException;
+import at.enrollment_service.model.CourseCollection;
 import at.enrollment_service.model.CourseEnrollment;
 import at.enrollment_service.model.CourseLineItem;
 import at.enrollment_service.model.EnrollmentStatus;
@@ -29,7 +30,7 @@ public class EnrollmentMapper {
                 .apartment(request.getAddress().getApartment())
                 .status(EnrollmentStatus.NEW)
                 .createdBy(username)
-                .courseLineItems(courseLineItems)
+                .courseCollection(new CourseCollection(courseLineItems))
                 .build();
     }
 
@@ -37,7 +38,7 @@ public class EnrollmentMapper {
         return EnrollmentResponse.builder()
                 .enrollmentId(enrollment.getId())
                 .totalPrice(enrollment.getTotalPrice())
-                .courseLineItems(enrollment.getCourseLineItems())
+                .courseLineItems(enrollment.getCourseCollection().getCourses())
                 .address(Address.builder()
                         .city(enrollment.getCity())
                         .street(enrollment.getStreet())

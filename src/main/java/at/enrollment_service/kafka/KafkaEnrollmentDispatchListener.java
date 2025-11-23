@@ -2,7 +2,7 @@ package at.enrollment_service.kafka;
 
 import at.EnrollmentDispatchedEvent;
 import at.enrollment_service.model.EnrollmentStatus;
-import at.enrollment_service.repository.CourseEnrollmentReopsitory;
+import at.enrollment_service.repository.CourseEnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +11,6 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -20,21 +19,22 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class KafkaEnrollmentDispatchListener {
 
-    private final CourseEnrollmentReopsitory courseEnrollmentRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository;
     @Value("${kafkaprops.nack-sleep-duration}")
     private Duration nackSleepDuration;
 
-    @Transactional
     @KafkaListener(topics = {"${kafkaprops.enrollment-dispatch-topic}"})
     public void consumeEnrollmentDispatchEvent(EnrollmentDispatchedEvent event,
-                                          @Header(KafkaHeaders.RECEIVED_KEY) String key,
-                                          @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
-                                          @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
-                                          Acknowledgment acknowledgment) {
+                                               @Header(KafkaHeaders.RECEIVED_KEY) String key,
+                                               @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
+                                               @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+                                               Acknowledgment acknowledgment) {
         log.info("Received EnrollmentDispatchedEvent from Kafka: {}. Key: {}. Partition: {}. Topic: {}", event, key, partition, topic);
         try {
-            courseEnrollmentRepository
-                    .updateStatusById(event.getEnrollmentId(), EnrollmentStatus.fromString(event.getStatus().name()));
+            courseEnrollmentRepository.updateStatusById(
+                    event.getEnrollmentId(),
+                    EnrollmentStatus.fromString(event.getStatus().name())
+            );
             log.info("Successfully updated EnrollmentStatus to {} for enrollment with ID={}", event.getStatus(), event.getEnrollmentId());
             acknowledgment.acknowledge();
         } catch (Exception e) {
