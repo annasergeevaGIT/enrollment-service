@@ -18,4 +18,4 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE CourseEnrollment e SET e.status = :newStatus, e.updatedAt = CURRENT_TIMESTAMP() WHERE e.id = :enrollmentId")
-    int updateStatusById(Long enrollmentId, EnrollmentStatus newStatus);}
+    void updateStatusById(Long enrollmentId, EnrollmentStatus newStatus);}

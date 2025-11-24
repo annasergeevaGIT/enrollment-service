@@ -69,6 +69,7 @@ public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
         );
     }
 
+
     @Test
     void createEnrollment_returnsError_whenTimeout() {
         prepareStubForSuccessWithTimeout();
@@ -78,10 +79,7 @@ public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
                         createEnrollmentRequest(), USERNAME_ONE))
                 .isInstanceOf(EnrollmentServiceException.class);
 
-        wiremock.verify(
-                1,
-                postRequestedFor(urlEqualTo(COURSE_INFO_PATH))
-        );
+        wiremock.verify(1, postRequestedFor(urlEqualTo(COURSE_INFO_PATH)));
     }
 
     @Test
@@ -93,11 +91,7 @@ public class CourseEnrollmentServiceImplTest extends BaseIntegrationTest {
                         createEnrollmentRequest(), USERNAME_ONE))
                 .isInstanceOf(EnrollmentServiceException.class);
 
-        // Synchronous clients do NOT retry on application logic errors.
-        wiremock.verify(
-                1,
-                postRequestedFor(urlEqualTo(COURSE_INFO_PATH))
-        );
+        wiremock.verify(1, postRequestedFor(urlEqualTo(COURSE_INFO_PATH)));
     }
 
     @Test

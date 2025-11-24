@@ -34,7 +34,6 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
     public EnrollmentResponse createEnrollment(CreateEnrollmentRequest request, String username) {
 
         try {
-            //direct synchronous call — SAME environment as CourseClientTest
             var courseInfo = courseClient.getCourseInfo(
                     new GetCourseInfoRequest(request.getCourseNames())
             );
@@ -58,7 +57,7 @@ public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
             return enrollmentMapper.mapToResponse(saved);
         }
         catch (EnrollmentServiceException e) {
-            // pass through domain exception
+
             throw e;
         }
         catch (Exception e) {

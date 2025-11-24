@@ -2,6 +2,8 @@ package at.enrollment_service.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.client.loadbalancer.reactive.ReactorLoadBalancerExchangeFilterFunction;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -16,6 +18,7 @@ import java.net.http.HttpClient;
 public class RestClientConfig {
 
     private final EnrollmentServiceProps props;
+    private final ReactorLoadBalancerExchangeFilterFunction lb;
 
     @Bean
     public RestClient restClient(RestClient.Builder builder) {
