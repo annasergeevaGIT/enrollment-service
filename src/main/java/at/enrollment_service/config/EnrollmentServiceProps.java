@@ -12,12 +12,13 @@ import java.time.Duration;
  */
 @Data
 @AllArgsConstructor
+
 @ConfigurationProperties(prefix = "external") //scanned by @ConfigurationPropertiesScan
 public class EnrollmentServiceProps {
     private final String courseServiceUrl;
     private final String courseInfoPath;
-    private final Duration defaultTimeout; //simulated in vt
-    private final Duration retryBackoff; //simulated in vt
+    private final Duration defaultTimeout; //
+    private final Duration retryBackoff; //
     private final int retryCount;
-    private final double retryJitter; //not used in vt
+    private final double retryJitter; //
 }

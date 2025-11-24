@@ -12,29 +12,33 @@ import org.springframework.web.client.RestClient;
 import java.net.http.HttpClient;
 
 //basic configuration of WebClient for communication with the Course Service.
-@RequiredArgsConstructor
 @Configuration
+@RequiredArgsConstructor
 @EnableConfigurationProperties(EnrollmentServiceProps.class)
 public class RestClientConfig {
 
     private final EnrollmentServiceProps props;
-    private final ReactorLoadBalancerExchangeFilterFunction lb;
+
+    @Bean
+    @LoadBalanced
+    public RestClient.Builder loadBalancedRestClientBuilder() {
+        return RestClient.builder();
+    }
 
     @Bean
     public RestClient restClient(RestClient.Builder builder) {
 
-        // Force HTTP/1.1 to avoid intermittent HTTP/2 RST_STREAM issues with WireMock/JDK client.
         HttpClient httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
-                .connectTimeout(props.getDefaultTimeout())
+                .connectTimeout(props.getDefaultTimeout()) //connect timeout
                 .build();
 
-        var requestFactory = new JdkClientHttpRequestFactory(httpClient);
-        requestFactory.setReadTimeout(props.getDefaultTimeout());
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(props.getDefaultTimeout()); //read timeout
 
         return builder
                 .requestFactory(requestFactory)
-                .baseUrl(props.getCourseServiceUrl())
+                .baseUrl("http://course-service")   // Eureka serviceId
                 .build();
     }
 }
