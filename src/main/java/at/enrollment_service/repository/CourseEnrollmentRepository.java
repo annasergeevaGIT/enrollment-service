@@ -11,7 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 
-public interface CourseEnrollmentReopsitory extends ReactiveCrudRepository<CourseEnrollment, Long> {
+public interface CourseEnrollmentRepository extends ReactiveCrudRepository<CourseEnrollment, Long> {
 
     //Pageable limits query results using page, size, and sort parameters, instead of loading all data at once
     Flux<CourseEnrollment> findAllByCreatedBy(String username, Pageable pageable);

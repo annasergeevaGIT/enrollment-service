@@ -2,7 +2,7 @@ package at.enrollment_service.kafka;
 
 import at.EnrollmentDispatchedEvent;
 import at.enrollment_service.model.EnrollmentStatus;
-import at.enrollment_service.repository.CourseEnrollmentReopsitory;
+import at.enrollment_service.repository.CourseEnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +19,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class KafkaEnrollmentDispatchListener {
 
-    private final CourseEnrollmentReopsitory courseEnrollmentRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository;
     @Value("${kafkaprops.nack-sleep-duration}")
     private Duration nackSleepDuration;
 

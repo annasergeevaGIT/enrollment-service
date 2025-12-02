@@ -13,7 +13,7 @@ public class EnrollmentOutboxMapper {
                 .createdBy(enrollment.getCreatedBy())
                 .city(enrollment.getCity())
                 .street(enrollment.getStreet())
-                .house(enrollment.getApartment())
+                .house(enrollment.getHouse())
                 .apartment(enrollment.getApartment())
                 .createdAt(enrollment.getCreatedAt())
                 .build();

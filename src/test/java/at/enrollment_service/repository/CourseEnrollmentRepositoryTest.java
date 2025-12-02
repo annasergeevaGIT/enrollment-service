@@ -26,7 +26,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 public class CourseEnrollmentRepositoryTest extends BaseTest {
 
     @Autowired
-    private CourseEnrollmentReopsitory repository;
+    private CourseEnrollmentRepository repository;
 
     @Test
     void findAllByCreatedBy_returnsCorrectSortedByDateDesc() {

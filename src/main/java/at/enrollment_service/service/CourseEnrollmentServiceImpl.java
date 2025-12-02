@@ -8,7 +8,7 @@ import at.enrollment_service.exception.EnrollmentServiceException;
 import at.enrollment_service.model.mapper.CourseClient;
 import at.enrollment_service.model.mapper.EnrollmentMapper;
 import at.enrollment_service.model.mapper.EnrollmentOutboxMapper;
-import at.enrollment_service.repository.CourseEnrollmentReopsitory;
+import at.enrollment_service.repository.CourseEnrollmentRepository;
 import at.enrollment_service.repository.EnrollmentPlacedEventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CourseEnrollmentServiceImpl implements CourseEnrollmentService {
 
-    private final CourseEnrollmentReopsitory repository;
+    private final CourseEnrollmentRepository repository;
     private final CourseClient courseClient;
     private final EnrollmentMapper enrollmentMapper;
 
