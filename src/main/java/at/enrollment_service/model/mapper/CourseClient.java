@@ -5,6 +5,7 @@ import at.enrollment_service.dto.GetCourseInfoRequest;
 import at.enrollment_service.dto.GetCourseInfoResponse;
 import at.enrollment_service.exception.EnrollmentServiceException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeoutException;
  * Web Client for interacting with the Course Service.
  */
 @Component
+@Profile("!stress")
 @RequiredArgsConstructor
 public class CourseClient {
 
