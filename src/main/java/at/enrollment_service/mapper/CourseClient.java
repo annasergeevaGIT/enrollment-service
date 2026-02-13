@@ -4,10 +4,12 @@ import at.enrollment_service.config.EnrollmentServiceProps;
 import at.enrollment_service.dto.GetCourseInfoRequest;
 import at.enrollment_service.dto.GetCourseInfoResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 @Component
+@Profile("!stress")
 @RequiredArgsConstructor
 public class CourseClient {
 
