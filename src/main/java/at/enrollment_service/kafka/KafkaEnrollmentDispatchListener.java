@@ -18,11 +18,11 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(
-        name = "app.kafka.enabled",
-        havingValue = "true",
-        matchIfMissing = true
-)
+//@ConditionalOnProperty(
+//        name = "app.kafka.enabled",
+//        havingValue = "true",
+//        matchIfMissing = true
+//)
 public class KafkaEnrollmentDispatchListener {
 
     private final CourseEnrollmentRepository courseEnrollmentRepository;
