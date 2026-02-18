@@ -6,11 +6,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.VirtualThreadTaskExecutor;
 
 @Configuration
-//@ConditionalOnProperty(
-//        name = "app.kafka.enabled",
-//        havingValue = "true",
-//        matchIfMissing = true
-//)
+@ConditionalOnProperty(
+        name = "app.kafka.enabled",
+        havingValue = "true",
+        matchIfMissing = true
+)
 public class KafkaVTConfig {
 
     @Bean(name = "kafkaConsumerExecutor")
