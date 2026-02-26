@@ -5,6 +5,7 @@ import at.enrollment_service.repository.converter.CourseLineItemWriteConverter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
 import org.springframework.data.r2dbc.convert.R2dbcCustomConversions;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Configuration
 @EnableR2dbcAuditing //Enables automatic handling of fields createdAt and updatedAt
+@Profile("!stress")
 public class R2dbcConfig {
     /*
      * Register custom converters for R2DBC to handle conversion between PostgreSQL JSON and List<CourseLineItem>.
